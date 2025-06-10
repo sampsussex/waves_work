@@ -1,5 +1,6 @@
 # Quick script to cross match the cosmos catalog with WAVES WD10 DDF field. 
 # Sam Philipsborn 10-06-25
+# https://github.com/sampsussex/waves_work/tree/main/photo_zs/cross_match_cosmos
 #
 # Here we cross match COSMOS DR1 (https://arxiv.org/abs/2503.00120) with WAVES DDF v2p4. 
 # We choose a 1 arc sec matching radius on RAmax, Decmax from WAVES, and ra_corrected,
