@@ -259,7 +259,7 @@ if __name__ == "__main__":
     
     # Additional data
     cat1_data = {'Id_specz': cat1['Id_specz'], 'specz': cat1['specz'], 'Confidence_level': cat1['Confidence_level']}
-    cat2_data = {'uberID': cat2['uberID']}
+    cat2_data = {'uberID': cat2['uberID'], 'class': cat2['class']}
     
     matches = match_catalogs(ra1, dec1, ra2, dec2, 
                            max_sep=10.0*u.arcsec,

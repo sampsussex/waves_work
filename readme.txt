@@ -8,3 +8,6 @@
 # We filter on mask, duplicate == 0 from WAVES, as well as class != artefect. 
 # We choose the specz_compilation_COSMOS_DR1.00_unique.fits (i,e no duplicates, best quailty
 # spectra kept) file from cosmos, filtering on Confidence_level >= 95. 
+#
+# There are stars in this sample, where the Confidence_level is high but the redshift
+# is very low or indeed 0. I have kept the class flag from WAVES if needed.
