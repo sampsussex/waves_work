@@ -1,0 +1,3 @@
+# File containing extra circles to be masked out in WAVES-S. This contains a large GC and large star in that order. ra-dec-radius. 
+15.0 -33.716 0.35
+344.15 -29.62 0.55
