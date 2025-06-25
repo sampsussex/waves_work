@@ -32,7 +32,7 @@ class star_overdensites:
     def __init__(self, waves_filepath = '/Users/sp624AA/Downloads/Ultralight/waves_s_ultralite.parquet', 
                  gaiastar_filepath = '/Users/sp624AA/Downloads/Masking/gaiastarmaskwaves.csv', 
                  waves_region ='S', 
-                 gaia_g_bins = [[0, 8], [8, 13], [13, 15], [15,16]]):
+                 gaia_g_bins = [[0, 8], [8, 13], [13, 15], [15,16]], bin_res_multipliers = [1, 2, 4, 4]):
         
 
         self.waves_filepath = waves_filepath
@@ -50,6 +50,8 @@ class star_overdensites:
             self.bin_names.append(str(self.gaia_bins[i][0]) + "<G<" + str(self.gaia_bins[i][1]))  # Fixed indexing
 
         print(f'bin names: {self.bin_names}')
+
+        self.bin_res_mult = bin_res_multipliers
 
         self.stacks = {}
 
@@ -105,7 +107,8 @@ class star_overdensites:
             stars_coords = SkyCoord(ra=np.array(stars['ra'])*u.deg, dec=np.array(stars['dec'])*u.deg)
             sources_coords = SkyCoord(ra=np.array(self.cat['RAmax'])*u.deg, dec=np.array(self.cat['Decmax'])*u.deg)  # Fixed variable name
 
-            nside = 1024 * 32
+            nside = 1024 * 32 * self.bin_res_mult[gbin]
+            
             res_arcmin = hp.nside2resol(nside, arcmin=True)
             print(f"NSIDE = {nside}, resolution ≈ {res_arcmin:.2f} arcmin")
 
