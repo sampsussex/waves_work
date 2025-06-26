@@ -22,7 +22,7 @@ def mask_radius_waves(g):
 
 class star_overdensites:
     def __init__(self,
-                 waves_filepath='/Users/sp624AA/Downloads/Ultralight/waves_s_ultralite.parquet',
+                 waves_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-S_d1m3p1f1_light.parquet',
                  gaiastar_filepath='/Users/sp624AA/Downloads/Masking/gaiastarmaskwaves.csv',
                  waves_region='S',
                  gaia_g_bins=[[0, 8], [8, 13], [13, 15], [15, 16]]):
@@ -92,14 +92,14 @@ class star_overdensites:
         # Use global minimum radius to set binning resolution
         min_radius = self.all_stars['mask_radius'].min()
         res_arcmin = hp.nside2resol(self.nside, arcmin=True)
-        nbins = int(np.floor(self.extent * min_radius / res_arcmin))
+        #nbins = int(np.floor(2* self.extent * min_radius / res_arcmin))
         print(f"NSIDE = {self.nside}, resolution ≈ {res_arcmin:.2f} arcmin")
-        print("Global min radius:", min_radius)
-        print("Using nbins =", nbins)
+        #print("Global min radius:", min_radius)
+        #print("Using nbins =", nbins)
 
-        self.nbins = nbins
-        self.xedges = np.linspace(-self.extent, self.extent, nbins + 1)
-        self.yedges = np.linspace(-self.extent, self.extent, nbins + 1)
+        #self.nbins = nbins
+        #self.xedges = np.linspace(-self.extent, self.extent, nbins + 1)
+        #self.yedges = np.linspace(-self.extent, self.extent, nbins + 1)
 
         rad_to_arcmin = 180 / np.pi * 60
         query_extent = 5  # units of R
@@ -115,7 +115,7 @@ class star_overdensites:
             print(f"Processing bin: {self.bin_names[gbin]}, number of stars: {len(stars)}")
 
             min_radius = np.min(radii)
-            nbins = int(np.floor(self.extent * min_radius / res_arcmin))
+            nbins = int(np.floor(2 * self.extent * min_radius / res_arcmin))
             print(f"Bin {self.bin_names[gbin]}: min radius = {min_radius:.2f} arcmin, nbins = {nbins}")
 
             xedges = np.linspace(-self.extent, self.extent, nbins + 1)
@@ -215,7 +215,7 @@ class star_overdensites:
 
 if __name__ == "__main__":
     analyzer = star_overdensites(
-        waves_filepath='/Users/sp624AA/Downloads/Ultralight/waves_s_ultralite.parquet',
+        waves_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-S_d1m3p1f1_light.parquet',
         gaiastar_filepath='/Users/sp624AA/Downloads/Masking/gaiastarmaskwaves.csv',
         waves_region='S',
         gaia_g_bins=[[0, 8], [8, 13], [13, 15], [15, 16]]
