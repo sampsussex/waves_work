@@ -65,7 +65,7 @@ class star_overdensites:
 
     def load_waves(self):
         self.cat = pq.read_table(self.waves_filepath).to_pandas()
-        self.cat = self.cat[(self.cat['duplicate'] == 0)]
+        self.cat = self.cat[(self.cat['duplicate'] == 0) & (self.cat['ghostmask'] == 0) & (self.cat['class'] != 'artefact')]
 
     def load_gaia_stars(self):
         self.all_stars = pd.read_csv(self.gaiastar_filepath)
@@ -209,7 +209,7 @@ class star_overdensites:
                 axes[j].set_visible(False)
 
         plt.tight_layout()
-        plt.savefig(f'waves-{self.waves_region.lower()}-all-bins-stacks.png', dpi=150, bbox_inches='tight')
+        plt.savefig(f'waves-{self.waves_region.lower()}-all-bins-stacks-yes-ghostmask-no-artefacts_8-14_g.png', dpi=150, bbox_inches='tight')
         plt.show()
 
 
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         waves_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-S_d1m3p1f1_light.parquet',
         gaiastar_filepath='/Users/sp624AA/Downloads/Masking/gaiastarmaskwaves.csv',
         waves_region='S',
-        gaia_g_bins=[[0, 8], [8, 13], [13, 15], [15, 16]]
+        gaia_g_bins=[[8, 9], [9,10], [10, 11], [11, 12], [12, 13], [13,14]]
     )
 
     print("Loading WAVES data...")
