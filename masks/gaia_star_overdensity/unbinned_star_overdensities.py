@@ -104,18 +104,20 @@ def compute_angular_offsets_numba(star_ra_rad, star_dec_rad, source_ra_rad, sour
 
 class star_overdensites:
     def __init__(self,
-                 waves_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-S_d1m3p1f1_light.parquet',
-                 gaiastar_filepath='/Users/sp624AA/Downloads/Masking/gaiastarmaskwaves.csv',
-                 waves_region='S',
+                 waves_n_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-N_d1m3p1f1_light.parquet',
+                 waves_s_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-S_d1m3p1f1_light.parquet',
+                 gaiastar_filepath='/Users/sp624AA/Downloads/waves_light/gaiastarmaskwaves.csv',
+                 waves_region='NS',
                  filters = ['Ghosts and Artefacts', 'Ghosts and no Artefacts', 'No Ghosts or Artefacts'],
                  gaia_g_bins=[[0, 8], [8, 13], [13, 15], [15, 16]]):
 
-        self.waves_filepath = waves_filepath
+        self.waves_n_filepath = waves_n_filepath
+        self.waves_s_filepath = waves_s_filepath
         self.gaiastar_filepath = gaiastar_filepath
         self.waves_region = waves_region
 
-        if self.waves_region not in ['N', 'S']:
-            raise ValueError('waves_region must be either N or S')
+        if self.waves_region not in ['N', 'S', 'NS']:
+            raise ValueError('waves_region must be either N or S or NS')
 
         self.gaia_bins = gaia_g_bins
         self.bin_names = [f"{b[0]}<G<{b[1]}" for b in self.gaia_bins]
@@ -137,16 +139,31 @@ class star_overdensites:
 
 
     def load_waves(self):
-        self.cat = pq.read_table(self.waves_filepath, columns=['RAmax', 'Decmax', 'class', 'ghostmask', 'duplicate']).to_pandas()
-        self.cat = self.cat[(self.cat['duplicate'] == 0)].reset_index(drop=True)
+        if self.waves_region == 'NS':
+            cat_n = pq.read_table(self.waves_n_filepath, columns=['RAmax', 'Decmax', 'class', 'ghostmask', 'duplicate']).to_pandas()
+            cat_s = pq.read_table(self.waves_s_filepath, columns=['RAmax', 'Decmax', 'class', 'ghostmask', 'duplicate']).to_pandas()
+            self.cat = pd.concat([cat_n, cat_s])
+            self.cat = self.cat[(self.cat['duplicate'] == 0)].reset_index(drop=True)
+            del cat_n
+            del cat_s
+        
+        if self.waves_region == 'N':
+
+            self.cat = pq.read_table(self.waves_n_filepath, columns=['RAmax', 'Decmax', 'class', 'ghostmask', 'duplicate']).to_pandas()
+            self.cat = self.cat[(self.cat['duplicate'] == 0)].reset_index(drop=True)
+
+        if self.waves_region == 'S':
+            self.cat = pq.read_table(self.waves_s_filepath, columns=['RAmax', 'Decmax', 'class', 'ghostmask', 'duplicate']).to_pandas()
+            self.cat = self.cat[(self.cat['duplicate'] == 0)].reset_index(drop=True)
 
     def load_gaia_stars(self):
         self.all_stars = pd.read_csv(self.gaiastar_filepath)
         self.all_stars = self.all_stars[self.all_stars['phot_g_mean_mag'] <= 16]
         if self.waves_region == 'S':
             self.all_stars = self.all_stars[self.all_stars['dec'] < -10]
-        else:
+        if self.waves_region == 'N':
             self.all_stars = self.all_stars[self.all_stars['dec'] > -10]
+
         self.all_stars['mask_radius'] = mask_radius_waves(self.all_stars['phot_g_mean_mag'])
 
 
@@ -446,10 +463,10 @@ class star_overdensites:
 
 if __name__ == "__main__":
     analyzer = star_overdensites(
-        waves_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-S_d1m3p1f1_light.parquet',
-        gaiastar_filepath='/Users/sp624AA/Downloads/Masking/gaiastarmaskwaves.csv',
-        waves_region='S',
-        gaia_g_bins=[[0, 8], [8,14], [14, 16]]
+        #waves_filepath='/Users/sp624AA/Downloads/waves_light/WAVES-S_d1m3p1f1_light.parquet',
+        #gaiastar_filepath='/Users/sp624AA/Downloads/Masking/gaiastarmaskwaves.csv',
+        waves_region='NS',
+        gaia_g_bins=[[0,8], [8,14], [14, 16]]
     )
 
     print("Loading WAVES data...")
