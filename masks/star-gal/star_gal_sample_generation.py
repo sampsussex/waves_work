@@ -99,7 +99,7 @@ print(f"Number of DESI matches: {len(desi_matches)}")
 
 # Load in GAMA files
 
-hdul = fits.open('../gkvScienceCatv02.fits')
+hdul = fits.open(gama_filepath)
 data = hdul[1].data
 cols = hdul[1].columns
 t=Table(data)
@@ -115,7 +115,7 @@ df_gama=df_gama[df_gama['NQ']>2]
 
 df_gama.loc[df_gama[df_gama['RAmax']>300].index,'RAmax']=df_gama[df_gama['RAmax']>300]['RAmax']-360
 
-hdul = fits.open('../StellarMassesGKVv24.fits')
+hdul = fits.open(gama_star_filepath)
 data = hdul[1].data
 cols = hdul[1].columns
 t=Table(data)
@@ -157,7 +157,7 @@ waves_matches['spec_class']=waves_matches['spec_class'].replace([3], 'ambiguous'
 
 # Load in GAIA files 
 
-hdul = fits.open('../GAIA_S1.fits')
+hdul = fits.open(gaia_s1_filepath)
 data = hdul[1].data
 cols = hdul[1].columns
 t=Table(data)
@@ -167,7 +167,7 @@ del data
 del cols
 del t
 
-hdul = fits.open('../GAIA_S2.fits')
+hdul = fits.open(gaia_s2_filepath)
 data = hdul[1].data
 cols = hdul[1].columns
 t=Table(data)
@@ -177,7 +177,7 @@ del data
 del cols
 del t
 
-hdul = fits.open('../GAIA_N.fits')
+hdul = fits.open(gaia_n_filepath)
 data = hdul[1].data
 cols = hdul[1].columns
 t=Table(data)
@@ -209,7 +209,7 @@ gaia_matches['Dec_survey']=gaia_waves_matches['dec'].values
 print(f"Number of GAIA matches: {len(gaia_matches)}")
 
 # Load in SDSS files
-df_sdss=pd.read_csv('../SDSS.csv')
+df_sdss=pd.read_csv(sdss_filepath)
 
 max_sep=0.6*u.arcsec
 waves = SkyCoord(ra=full_cat['RAmax'].values*u.degree, dec=full_cat['Decmax'].values*u.degree)
