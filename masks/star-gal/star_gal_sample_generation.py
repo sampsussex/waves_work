@@ -541,3 +541,16 @@ plt.ylabel('True label')
 plt.savefig('WAVES_classifier_confusion_matrix_all.jpg',bbox_inches='tight',dpi=100,facecolor='white')
 
 plt.clf()
+
+TP=len(df_total[((df_total['stargal']=='galaxy')|(df_total['stargal']=='ambiguous')) & (df_total['spec_class']=='galaxy')])
+FP=len(df_total[((df_total['stargal']=='galaxy')|(df_total['stargal']=='ambiguous')) & (df_total['spec_class']=='star')])
+FN=len(df_total[(df_total['stargal']=='star') & (df_total['spec_class']=='galaxy')])
+P=TP/(TP+FP)
+C=TP/(TP+FN)
+F1=2*((P*C)/(P+C))
+# Print purity, completeness, and F1 score
+print(f"Purity: {P:.4f}")
+print(f"Completeness: {C:.4f}")
+print(f"F1 Score: {F1:.4f}")
+
+
