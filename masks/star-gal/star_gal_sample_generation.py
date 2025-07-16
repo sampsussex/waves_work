@@ -10,8 +10,8 @@ import matplotlib
 from sklearn import metrics
 
 
-waves_n_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-N_d1m3p1f1_light.parquet'
-waves_s_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-S_d1m3p1f1_light.parquet'
+waves_n_filepath = '/mnt/lustre/projects/astro/general/sp624/waves-catas/d1m3p1f1/WAVES-N_d1m3p1f1.parquet'
+waves_s_filepath = '/mnt/lustre/projects/astro/general/sp624/waves-catas/d1m3p1f1/WAVES-S_d1m3p1f1.parquet'
 waves_n_stargal_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-N_d1m3p1f1_Z22_stargal.parquet'
 waves_s_stargal_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-S_d1m3p1f1_Z22_stargal.parquet'
 
@@ -34,7 +34,7 @@ df['uberID'] = df['uberID'].astype(str)
 
 
 # Load in parts of full catalog
-read_columns = ['uberID', 'RAmax', 'Decmax', 'mask', 'starmask', 'ghostmask', 'class', 'duplicate', 'mag_Zt']
+read_columns = ['uberID', 'RAmax', 'Decmax', 'mask', 'starmask', 'ghostmask', 'class', 'duplicate', 'mag_Zt', 'flux_ut', 'flux_gt', 'flux_rt', 'flux_it', 'flux_Zt', 'flux_Yt', 'flux_Jt', 'flux_Ht', 'flux_Kt']
 
 full_cat = pq.read_table(waves_n_filepath, columns=read_columns).to_pandas()
 s_full_cat = pq.read_table(waves_s_filepath, columns=read_columns).to_pandas()
@@ -53,7 +53,18 @@ full_cat = full_cat.merge(df, on='uberID', how='inner')
 # Wrap RAs greater than 300 to negative 
 full_cat.loc[full_cat[full_cat['RAmax'] > 300].index, 'RAmax'] = full_cat[full_cat['RAmax'] > 300]['RAmax'] - 360
 
+# Define the bands and their corresponding flux columns
+bands = ['u', 'g', 'r', 'i', 'Z', 'Y', 'J', 'H', 'K']
 
+# Loop through each band and calculate magnitudes
+for band in bands:
+    full_cat[f'mag_{band}_tot'] = 8.9 - 2.5 * np.log10(full_cat[f'flux_{band}t'])
+
+# Create list of magnitude column names
+mag_columns = [f'mag_{band}_tot' for band in bands]
+
+# Remove rows with ANY NaN in these columns
+full_cat = full_cat.dropna(subset=mag_columns)
 
 # Load in DESI files
 hdul = fits.open(desi_edr_filepath)
