@@ -6,24 +6,22 @@ import matplotlib.pylab as plt
 import pyarrow.parquet as pq
 import numpy as np
 import pandas as pd
-from tqdm.tqdm import tqdm
 import matplotlib
-import warnings
 from sklearn import metrics
 
 
-waves_n_filepath = 'WAVES-N_d1m3p1f1_Z22.parquet'
-waves_s_filepath = 'WAVES-S_d1m3p1f1_Z22.parquet'
-waves_n_stargal_filepath = 'WAVES-N_d1m3p1f1_Z22_stargal.parquet'
-waves_s_stargal_filepath = 'WAVES-S_d1m3p1f1_Z22_stargal.parquet'
+waves_n_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-N_d1m3p1f1_light.parquet'
+waves_s_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-S_d1m3p1f1_light.parquet'
+waves_n_stargal_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-N_d1m3p1f1_Z22_stargal.parquet'
+waves_s_stargal_filepath = '/its/home/sp624/waves_masking/mangle_code_v2/mask_testing/WAVES-S_d1m3p1f1_Z22_stargal.parquet'
 
-desi_edr_filepath = '../zall-tilecumulative-edr-vac.fits'
-gama_filepath = '../gkvScienceCatv02.fits'
-gama_star_filepath = '../StellarMassesGKVv24.fits'
-gaia_s1_filepath = '../GAIA_S1.fits'
-gaia_s2_filepath = '../GAIA_S2.fits'
-gaia_n_filepath = '../GAIA_N.fits'
-sdss_filepath = '../SDSS.csv'
+desi_edr_filepath = '/mnt/lustre/projects/astro/general/tc339/WAVES/zall-tilecumulative-edr-vac.fits'
+gama_filepath = '/mnt/lustre/projects/astro/general/tc339/WAVES/gkvScienceCatv02.fits'
+gama_star_filepath = '/mnt/lustre/projects/astro/general/tc339/WAVES/StellarMassesGKVv24.fits'
+gaia_s1_filepath = '/mnt/lustre/projects/astro/general/tc339/WAVES/GAIA_S1.fits'
+gaia_s2_filepath = '/mnt/lustre/projects/astro/general/tc339/WAVES/GAIA_S2.fits'
+gaia_n_filepath = '/mnt/lustre/projects/astro/general/tc339/WAVES/GAIA_N.fits'
+sdss_filepath = '/mnt/lustre/projects/astro/general/tc339/WAVES/SDSS.csv'
 
 
 # Load in star-gal classifications
@@ -48,7 +46,7 @@ full_cat = full_cat[(full_cat['duplicate'] == 0) &
                     (full_cat['class'] != 'artefact') & 
                     (full_cat['mask'] == 0) & 
                     (full_cat['starmask'] == 0) & 
-                    (full_cat['mag_Zt'] <= 21.1)]
+                    (full_cat['mag_Zt'] <= 21.2)]
 
 # Match parts of full catalog to star-gal classifications using pandas inner merge on UberID
 full_cat = full_cat.merge(df, on='uberID', how='inner')
@@ -96,7 +94,7 @@ desi_matches.loc[desi_matches[desi_matches['Z']<0.0015].index,'spec_class']='sta
 desi_matches=desi_matches.drop(desi_matches[(desi_matches['Z']<0.0015) & 
                                             (desi_matches['spec_class']=='galaxy')].index)
 
-# Pring number of desi matches
+# Print number of desi matches
 print(f"Number of DESI matches: {len(desi_matches)}")
 
 # Load in GAMA files
@@ -249,7 +247,7 @@ galaxies=pd.concat([waves_matches[waves_matches['spec_class']=='galaxy'],
 
 total=pd.concat([stars,galaxies])
 
-total.to_parquet('desiedr_gama_gaia_sdss_star_galaxy_sample.parquet', index=False)
+#total.to_parquet('desiedr_gama_gaia_sdss_star_galaxy_sample.parquet', index=False)
 
 desi_gals=desi_matches[desi_matches['spec_class']=='galaxy']
 desi_stars=desi_matches[desi_matches['spec_class']=='star']
@@ -395,6 +393,8 @@ try:
 
 except:
     print('Plotting failed, skipping...')
+
+del total
 
 df_total=pd.concat([gaia_matches,desi_gals,desi_stars,
                     gama_gals,gama_stars,sdss_gals,sdss_stars])
