@@ -400,42 +400,74 @@ df_total=pd.concat([gaia_matches,desi_gals,desi_stars,
                     gama_gals,gama_stars,sdss_gals,sdss_stars])
 
 
-# drop duplicates and contradictions
-contradict=np.intersect1d(df_total[df_total['spec_class']=='star'].index,sdss_gals.index)
-print(len(contradict))
-duplicate=np.intersect1d(df_total[df_total['spec_class']=='galaxy'].index,sdss_gals.index)
-print(len(duplicate))
-df_total=pd.concat([df_total.drop(contradict).drop(duplicate),sdss_gals.drop(contradict)])
+def remove_duplicates_and_contradictions(df_total, survey_data_dict):
+    """
+    Remove duplicates and contradictions between different surveys
+    
+    Parameters:
+    df_total: DataFrame with all combined data
+    survey_data_dict: Dict with survey names as keys and (gals_df, stars_df) as values
+    """
+    
+    for survey_name, (gals_df, stars_df) in survey_data_dict.items():
+        print(f"\nProcessing {survey_name}...")
+        
+        # Handle galaxies dataset
+        if len(gals_df) > 0:
+            # Find contradictions: objects classified as stars in df_total but galaxies in this survey
+            star_indices = set(df_total[df_total['spec_class'] == 'star'].index)
+            gals_indices = set(gals_df.index)
+            contradict_gals = star_indices.intersection(gals_indices)
+            
+            # Find duplicates: objects already classified as galaxies in df_total
+            galaxy_indices = set(df_total[df_total['spec_class'] == 'galaxy'].index)
+            duplicate_gals = galaxy_indices.intersection(gals_indices)
+            
+            print(f"  Galaxies - Contradictions: {len(contradict_gals)}, Duplicates: {len(duplicate_gals)}")
+            
+            # Remove contradictions and duplicates, then add non-conflicting galaxies
+            indices_to_remove = contradict_gals.union(duplicate_gals)
+            if indices_to_remove:
+                df_total = df_total.drop(index=list(indices_to_remove))
+            
+            # Add galaxies that don't conflict
+            gals_to_add = gals_df.drop(index=list(contradict_gals), errors='ignore')
+            if len(gals_to_add) > 0:
+                df_total = pd.concat([df_total, gals_to_add], ignore_index=False)
+        
+        # Handle stars dataset  
+        if len(stars_df) > 0:
+            # Find contradictions: objects classified as galaxies in df_total but stars in this survey
+            galaxy_indices = set(df_total[df_total['spec_class'] == 'galaxy'].index)
+            stars_indices = set(stars_df.index)
+            contradict_stars = galaxy_indices.intersection(stars_indices)
+            
+            # Find duplicates: objects already classified as stars in df_total
+            star_indices = set(df_total[df_total['spec_class'] == 'star'].index)
+            duplicate_stars = star_indices.intersection(stars_indices)
+            
+            print(f"  Stars - Contradictions: {len(contradict_stars)}, Duplicates: {len(duplicate_stars)}")
+            
+            # Remove contradictions and duplicates, then add non-conflicting stars
+            indices_to_remove = contradict_stars.union(duplicate_stars)
+            if indices_to_remove:
+                df_total = df_total.drop(index=list(indices_to_remove))
+            
+            # Add stars that don't conflict
+            stars_to_add = stars_df.drop(index=list(contradict_stars), errors='ignore')
+            if len(stars_to_add) > 0:
+                df_total = pd.concat([df_total, stars_to_add], ignore_index=False)
+    
+    return df_total
 
-contradict=np.intersect1d(df_total[df_total['spec_class']=='galaxy'].index,sdss_stars.index)
-print(len(contradict))
-duplicate=np.intersect1d(df_total[df_total['spec_class']=='star'].index,sdss_stars.index)
-print(len(duplicate))
-df_total=pd.concat([df_total.drop(contradict).drop(duplicate),sdss_stars.drop(contradict)])
+# Usage:
+survey_data = {
+    'SDSS': (sdss_gals, sdss_stars),
+    'GAMA': (gama_gals, gama_stars), 
+    'DESI': (desi_gals, desi_stars)
+}
 
-contradict=np.intersect1d(df_total[df_total['spec_class']=='star'].index,gama_gals.index)
-print(len(contradict))
-duplicate=np.intersect1d(df_total[df_total['spec_class']=='galaxy'].index,gama_gals.index)
-print(len(duplicate))
-df_total=pd.concat([df_total.drop(contradict).drop(duplicate),gama_gals.drop(contradict)])
-
-contradict=np.intersect1d(df_total[df_total['spec_class']=='galaxy'].index,gama_stars.index)
-print(len(contradict))
-duplicate=np.intersect1d(df_total[df_total['spec_class']=='star'].index,gama_stars.index)
-print(len(duplicate))
-df_total=pd.concat([df_total.drop(contradict).drop(duplicate),gama_stars.drop(contradict)])
-
-contradict=np.intersect1d(df_total[df_total['spec_class']=='star'].index,desi_gals.index)
-print(len(contradict))
-duplicate=np.intersect1d(df_total[df_total['spec_class']=='galaxy'].index,desi_gals.index)
-print(len(duplicate))
-df_total=pd.concat([df_total.drop(contradict).drop(duplicate),desi_gals.drop(contradict)])
-
-contradict=np.intersect1d(df_total[df_total['spec_class']=='galaxy'].index,desi_stars.index)
-print(len(contradict))
-duplicate=np.intersect1d(df_total[df_total['spec_class']=='star'].index,desi_stars.index)
-print(len(duplicate))
-df_total=pd.concat([df_total.drop(contradict).drop(duplicate),desi_stars.drop(contradict)])
+df_total = remove_duplicates_and_contradictions(df_total, survey_data)
 
 
 # save df total
