@@ -25,13 +25,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Your existing data loading code...
-data = Table.read('/its/home/sp624/waves_general/waves_work/groupfinding/fs2_subselection.parquet')
+data = Table.read('fs2_subselection.parquet')
 
 ra = data['ra_gal']
 dec = data['dec_gal']
 redshifts = data['observed_redshift_gal']
 mock_group_ids = data['halo_id']
-
+print("NUMBER OF GALAXIES:", len(ra))
 ra_min, ra_max, dec_min, dec_max = 160, 170, 5, 10
 
 area_total = (np.radians(ra_max) - np.radians(ra_min)) * \
@@ -46,7 +46,7 @@ running_density = create_density_function(redshifts, total_counts = len(redshift
 
 # Running group catalogue
 red_cat = RedshiftCatalog(ra, dec, redshifts, running_density, cosmo)
-#red_cat.run_fof(b0 = 0.06, r0 = 16)
+red_cat.run_fof(b0 = 0.035, r0 = 50)
 
 # Process mock group IDs
 mock_group_id_counts = Counter(mock_group_ids)
@@ -58,7 +58,8 @@ id_mapping = {old_id: new_id for new_id, old_id in enumerate(unique_ids, start=1
 mock_group_ids = np.array([id_mapping[group_id] if group_id in id_mapping else -1 for group_id in mock_group_ids])
 
 red_cat.mock_group_ids = mock_group_ids
-
+score = red_cat.compare_to_mock(min_group_size=5)
+print(score)
 # Cache the mock comparison data in L2 cache by keeping it in memory
 # This prevents repeated computation of the static mock data
 _cached_mock_data = None
@@ -100,7 +101,7 @@ def get_optimal_thread_count():
 @njit
 def log_prior_numba(b0, r0):
     """Numba-optimized prior distribution calculation"""
-    if 0.05 < b0 < 0.1 and 14.9 < r0 < 40.0:
+    if 0.06 < b0 < 0.1 and 14.9 < r0 < 40.0:
         return 0.0  # Uniform prior
     return -np.inf  # Outside prior bounds
 
