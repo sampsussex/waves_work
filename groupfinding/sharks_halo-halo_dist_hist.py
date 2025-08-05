@@ -12,7 +12,6 @@ from tqdm import tqdm
 warnings.filterwarnings('ignore')
 
 # Set up cosmology
-cosmo = FlatLambdaCDM(H0=67.51, Om0=0.3)
 
 def virial_radius(M_vir, z=0, delta=200, ref_density='critical', cosmology=cosmo):
     """
@@ -52,7 +51,7 @@ def virial_radius(M_vir, z=0, delta=200, ref_density='critical', cosmology=cosmo
     return R.to(u.Mpc).value
 
 class HaloDensityAnalyzer:
-    def __init__(self, H0=70, Om0=0.3):
+    def __init__(self, H0=67.51, Om0=0.3):
         """
         Initialize the analyzer with cosmological parameters
         
