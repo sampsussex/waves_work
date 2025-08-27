@@ -223,7 +223,7 @@ class SharksCatalogHaloHaloSeparations:
 
         self.MASS_A = 10
 
-        self.min_group_members = 3
+        self.min_group_members = 2
         self.max_proj_r50 = 10
         self.max_vel_sigma = 5
 
@@ -258,6 +258,9 @@ class SharksCatalogHaloHaloSeparations:
         new_ids[mask] = mapped_values
 
         self.sharks['id_group_sky'] = new_ids
+
+        #plt.scatter(self.sharks['ra'][::1000], self.sharks['dec'][::1000], s=1, alpha=0.5)
+        #plt.show()
 
 
     def find_nessie_properties(self):
@@ -370,20 +373,22 @@ class SharksCatalogHaloHaloSeparations:
         plt.close()
 
     def plot_hists_r50_sigma(self):
+        bins_r50 = np.linspace(0, 4, 50)
         print('Plotting histograms of r50 and velocity dispersion for Nessie and Herons...')
         plt.figure(figsize=(12, 5))
 
         plt.subplot(1, 2, 1)
-        plt.hist(self.nessie_group_properties['r50'], bins=50, color='blue', alpha=0.7, log=True, label='Nessie')
-        plt.hist(self.herons_group_properties['r50'], bins=50, color='orange', alpha=0.7, log=True, label='Herons')
+        plt.hist(self.nessie_group_properties['r50'], color='blue', alpha=0.7, log=True, label='Nessie', bins = bins_r50)
+        plt.hist(self.herons_group_properties['r50'], color='orange', alpha=0.7, log=True, label='Herons', bins = bins_r50)
         plt.xlabel('r50 [Mpc/h]')
         plt.ylabel('Number of Groups')
         plt.title('Distribution of r50')
         plt.legend()
 
         plt.subplot(1, 2, 2)
-        plt.hist(self.nessie_group_properties['velocity_dispersion_gap'], bins=50, color='blue', alpha=0.7, log=True, label='Nessie')
-        plt.hist(self.herons_group_properties['velocity_dispersion_gap'], bins=50, color='orange', alpha=0.7, log=True, label='Herons')
+        bins_vel = np.linspace(0, 1500, 50)
+        plt.hist(self.nessie_group_properties['velocity_dispersion_gap'], color='blue', alpha=0.7, log=True, label='Nessie', bins = bins_vel)
+        plt.hist(self.herons_group_properties['velocity_dispersion_gap'], color='orange', alpha=0.7, log=True, label='Herons', bins = bins_vel)
         plt.xlabel('Velocity Dispersion Gap [km/s]')
         plt.ylabel('Number of Groups')
         plt.title('Distribution of Velocity Dispersion Gap')
@@ -391,6 +396,21 @@ class SharksCatalogHaloHaloSeparations:
 
         plt.tight_layout()
         plt.savefig('nessie_herons_r50_vel_disp_histograms.png', dpi=300)
+        plt.close()
+
+    def plot_halo_mass_hists(self):
+        print('Plotting histograms of MassA for Nessie and Herons...')
+        plt.figure(figsize=(8, 6))
+        bins_halo_mass = np.linspace(11, 16, 50)
+        plt.hist(np.log10(self.nessie_group_properties['MassA']), color='blue', alpha=0.7, log=True, label='Nessie', bins = bins_halo_mass)
+        plt.hist(np.log10(self.herons_group_properties['MassA']), color='orange', alpha=0.7, log=True, label='Herons', bins = bins_halo_mass)
+        plt.xlabel('MassA [M☉/h]')
+        plt.ylabel('Number of Groups')
+        plt.title(f'Distribution of MassA, N >= {self.min_group_members}')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.savefig('nessie_herons_massa_histogram.png', dpi=300)
         plt.close()
 
 
@@ -533,14 +553,14 @@ class SharksCatalogHaloHaloSeparations:
         im1 = axes[0].imshow(self.h_nessie.T, origin='lower', aspect='auto',
                            extent=[0, self.max_proj_r50, 0, self.max_vel_sigma],
                            cmap='viridis')
-        axes[0].set_title(f'Nessie Groups\n({int(np.sum(self.h_nessie))} pairs)')
+        axes[0].set_title(f'Nessie Groups\n({int(np.sum(self.h_nessie))} pairs)\n({len(self.nessie_group_properties)} groups)')
         plt.colorbar(im1, ax=axes[0], label='Number of pairs')
 
         # Herons
         im2 = axes[1].imshow(self.h_herons.T, origin='lower', aspect='auto',
                            extent=[0, self.max_proj_r50, 0, self.max_vel_sigma],
                            cmap='viridis')
-        axes[1].set_title(f'Herons Groups\n({int(np.sum(self.h_herons))} pairs)')
+        axes[1].set_title(f'Herons Groups\n({int(np.sum(self.h_herons))} pairs)\n({len(self.herons_group_properties)} groups)')
         plt.colorbar(im2, ax=axes[1], label='Number of pairs')
 
         # Formatting
@@ -563,12 +583,10 @@ if __name__ == "__main__":
     halo_seps.process_data()
     halo_seps.find_nessie_properties()
     halo_seps.find_herons_properties()
-    halo_seps.plot_massa_mass_herons()
     halo_seps.make_kde_trees()
     halo_seps.populate_2d_histograms()
     halo_seps.plot_histograms()
-    halo_seps.plot_vel_disp_vs_mvir_herons()
-    halo_seps.plot_hists_r50_sigma()
-    
-
-
+    #halo_seps.plot_massa_mass_herons()
+    #halo_seps.plot_vel_disp_vs_mvir_herons()
+    #halo_seps.plot_hists_r50_sigma()
+    #halo_seps.plot_halo_mass_hists()
