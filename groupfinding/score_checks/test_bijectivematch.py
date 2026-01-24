@@ -13,23 +13,23 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Your existing data loading code...
-data = Table.read('/Users/sp624AA/Downloads/mocks/GALFORM/G3CMockGalv04_processed.parquet')
+data = Table.read('/Users/sp624AA/Downloads/mocks/GALFORM/G3CMockGalv04all_z_processed.parquet')
 
 print(data.columns)
 ra = data['RA']
 dec = data['DEC']
 redshifts = data['Zspec']
-mock_group_ids = data['GroupID']
+mock_group_ids = data['HaloID']
 print("NUMBER OF GALAXIES:", len(ra))
-ra_min, ra_max, dec_min, dec_max = 160, 170, 5, 10
+#ra_min, ra_max, dec_min, dec_max = 160, 170, 5, 10
 
-area_total = (np.radians(ra_max) - np.radians(ra_min)) * \
-    (np.sin(np.radians(dec_max)) - np.sin(np.radians(dec_min)))
+#area_total = (np.radians(ra_max) - np.radians(ra_min)) * \
+#    (np.sin(np.radians(dec_max)) - np.sin(np.radians(dec_min)))
 
-area_sq_deg = 180 #area_total * (180 / np.pi)**2
-survey_fractional_area = area_sq_deg / (360**2 / np.pi) 
+area_sq_deg = 144 #area_total * (180 / np.pi)**2
+survey_fractional_area = area_sq_deg / (360**2 / np.pi)
 
-cosmo = FlatCosmology(h = 0.7, omega_matter = 0.3)
+cosmo = FlatCosmology(h = 1, omega_matter = 0.25)
 running_density = create_density_function(redshifts, total_counts = len(redshifts), 
                                           survey_fractional_area = survey_fractional_area, cosmology = cosmo)
 
@@ -37,8 +37,10 @@ completeness = np.repeat(1.0, len(redshifts))  # Assuming completeness is 100% f
 # Running group catalogue
 red_cat = RedshiftCatalog(ra, dec, redshifts, running_density, cosmo)
 
+plt.scatter(ra, dec, s=1)
+plt.savefig('input_galaxies.png')
 red_cat.calculate_completeness(ra, dec, completeness)
-red_cat.run_fof(b0 = 0.04, r0 = 34)
+red_cat.run_fof(b0 = 0.04, r0 = 36)
 
 # Process mock group IDs
 mock_group_id_counts = Counter(mock_group_ids)
@@ -448,11 +450,11 @@ if __name__ == "__main__":
     min_group_size = 5
     
     # Perform bijective comparison
-    results = bijcheck(group_ids_1, group_ids_2, min_group_size)
-    print(f"Bijective comparison results:")
-    print(f"e_num: {results.e_num}, e_den: {results.e_den}")
-    print(f"q_num: {results.q_num:.3f}, q_den: {results.q_den:.3f}")
+    #results = bijcheck(group_ids_1, group_ids_2, min_group_size)
+    #print(f"Bijective comparison results:")
+    #print(f"e_num: {results.e_num}, e_den: {results.e_den}")
+    #print(f"q_num: {results.q_num:.3f}, q_den: {results.q_den:.3f}")
     
     # Calculate S-score
+    #print(f"S-score: {score:.6f}")
     score = s_score(group_ids_1, group_ids_2, min_group_size)
-    print(f"S-score: {score:.6f}")

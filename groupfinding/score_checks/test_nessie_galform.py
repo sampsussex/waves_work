@@ -7,7 +7,6 @@ from scipy.stats import skewnorm
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.ioff()
 import logging
 galform_path = '/Users/sp624AA/Downloads/mocks/GALFORM/G3CMockGalv04.fits'
 
@@ -75,8 +74,8 @@ def score_catalog(data, name, h, omega_m, plot_z_pdfs=False):
     return score
 
 # Parameters to test. 
-hs = [0.7, 1]
-Omega_ms = [0.3, 0.25]
+hs = [0.7, 1, 0.7039]
+Omega_ms = [0.3, 0.25, 0.272]
 data_tables = [data_z_02, data_all_z, data_all_z_1965]
 names = ['data_z_02', 'data_all_z', 'data_all_z_1965']
 

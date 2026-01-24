@@ -195,6 +195,8 @@ gama4 = gama4['uberID','RAcen','Deccen','uberclass','CATAID','SC','Z','NQ',
               'velocity_dispersion_gap_err','mass_proxy','bcg_idxs','bcg_ras','bcg_decs',
               'bcg_redshifts','center_of_light_ras','center_of_light_decs','total_absolute_mag',
               'flux_proxies','lum_corrected_mass','lum_corrected_flux','MassA']
+
+
 output_path = '/Users/sp624AA/Downloads/gama3/gama4_nessie_groups.parquet'
 gama4.write(output_path, format='parquet', overwrite=True)
 

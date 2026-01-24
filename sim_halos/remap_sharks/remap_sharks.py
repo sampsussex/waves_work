@@ -67,7 +67,7 @@ def select_galaxies_within_rvir(cand_idxs, dist_arr, R, gal_available):
 
 
 
-def build_halo_mapping_numba(df, mass_threshold=11, n_neighbors=100):
+def build_halo_mapping_numba(df, mass_threshold=11, n_neighbors=500):
     """
     Halo -> new host mapping updated to reassign a halo to a more massive
     halo if it lies within the *virial radius* of that more massive halo.
@@ -269,7 +269,7 @@ class HaloRemapper:
 
     def remap_halos(self, halo_df):
         print("Building halo ID mapping...")
-        mapping = build_halo_mapping_numba(halo_df, mass_threshold=self.mass_lim_min, n_neighbors=250)
+        mapping = build_halo_mapping_numba(halo_df, mass_threshold=self.mass_lim_min, n_neighbors=500)
         self.mapping = mapping
         pd.DataFrame(list(mapping.items()), columns=['old_halo_id', 'new_halo_id']).to_csv(self.save_path_mapping, index=False)
         print("Halo mapping saved to", self.save_path_mapping)
