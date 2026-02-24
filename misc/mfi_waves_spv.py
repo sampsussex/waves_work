@@ -26,6 +26,45 @@ from astropy.coordinates import SkyCoord, EarthLocation
 from astroplan import Observer
 from astroplan.moon import moon_illumination
 
+def count_continuous_blocks(mask: np.ndarray, step_min: float, block_min: float = 20.0) -> float:
+    """
+    Count time (in hours) only in FULL `block_min`-minute blocks where `mask` is
+    continuously True.
+
+    Example: if mask is True for 34 minutes continuously, counts 20 minutes.
+             if mask is True for 41 minutes continuously, counts 40 minutes.
+    """
+    if mask.size == 0:
+        return 0.0
+
+    step_min = float(step_min)
+    block_min = float(block_min)
+    if step_min <= 0 or block_min <= 0:
+        return 0.0
+
+    # Require exact step divisibility? Not strictly necessary, but this keeps it clean.
+    # If not divisible, we still do it in time-space, not step-space.
+    block_steps = int(np.round(block_min / step_min))
+    if block_steps <= 0:
+        return 0.0
+
+    # Find contiguous True run lengths (in samples)
+    m = np.asarray(mask, dtype=bool)
+
+    # Pad with False at both ends so we can detect run boundaries via diff
+    padded = np.concatenate(([False], m, [False]))
+    d = np.diff(padded.astype(np.int8))
+
+    run_starts = np.where(d == 1)[0]   # index in original m where a True-run starts
+    run_ends   = np.where(d == -1)[0]  # index where it ends (exclusive)
+
+    run_lengths = run_ends - run_starts  # lengths in samples
+
+    # Full blocks per run
+    full_blocks = np.sum(run_lengths // block_steps)
+
+    # Convert to hours
+    return full_blocks * (block_min / 60.0)
 
 def build_observer_paranal() -> Observer:
     # ESO Paranal coords ~ 24°40' S, 70°25' W :contentReference[oaicite:2]{index=2}
@@ -86,13 +125,14 @@ def main():
         action="store_true",
         help="Print per-night breakdown.",
     )
+    ap.add_argument("--block-min", type=float, default=20.0, help="Continuous block size in minutes (default 20).")
     args = ap.parse_args()
 
     observer = build_observer_paranal()
     target = cosmos_target()
 
     # Start "Tomorrow" => now + 7 days (unless user overrides).
-    start = Time(args.start, scale="utc") if args.start else Time.now().utc + 1.0 * u.day
+    start = Time(args.start, scale="utc") if args.start else Time.now().utc + 7.0 * u.day
     ndays = int(np.ceil(args.weeks * 7.0))
 
     alt_min = args.alt_min_deg * u.deg
@@ -129,12 +169,14 @@ def main():
         caseC_mask = (mfi > 0.58) & moon_18down
 
         # Count minutes using boolean masks
-        step_hr = args.step_min / 60.0
-        open_hours = np.sum(target_up) * step_hr
+        # Count ONLY full continuous blocks (default: 20 min)
+        block_min = args.block_min
 
-        caseA_hours = np.sum(target_up & caseA_mask) * step_hr
-        caseB_hours = np.sum(target_up & caseB_mask) * step_hr
-        caseC_hours = np.sum(target_up & caseC_mask) * step_hr
+        open_hours = count_continuous_blocks(target_up, args.step_min, block_min=block_min)
+
+        caseA_hours = count_continuous_blocks(target_up & caseA_mask, args.step_min, block_min=block_min)
+        caseB_hours = count_continuous_blocks(target_up & caseB_mask, args.step_min, block_min=block_min)
+        caseC_hours = count_continuous_blocks(target_up & caseC_mask, args.step_min, block_min=block_min)
 
         total_open_hours += open_hours
         total_caseA_hours += caseA_hours
