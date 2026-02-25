@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-COSMOS visibility from Paranal (VISTA), over 8 weeks starting next week.
+COSMOS visibility from Paranal (VISTA), over SPV.
 
 Conditions per night:
 - Start after evening astronomical twilight end
 - End at morning astronomical twilight start
 - Target "visible" if altitude > 30 deg
-- Case A: moon illumination fraction < 0.02
-- Case B: moon illumination >= 0.02 AND moon altitude < 0 deg
+- Case A: moon illumination fraction < 0.1
+- Case B: moon illumination >= 0.1 AND moon altitude < 0 deg
 
 Requires: astropy, astroplan, numpy
 Install:
@@ -112,12 +112,12 @@ def main():
         default=None,
         help="Start time (UTC) in ISO format. Default: now + 7 days. Example: 2026-03-03 00:00:00",
     )
-    ap.add_argument("--weeks", type=float, default=7.0, help="Number of weeks to evaluate (default 8).")
+    ap.add_argument("--weeks", type=float, default=8.0, help="Number of weeks to evaluate (default 8).")
     ap.add_argument("--step-min", type=float, default=2.0, help="Time grid step in minutes (default 2).")
     ap.add_argument(
         "--alt-min-deg",
         type=float,
-        default=30.0,
+        default=50.0,
         help="Minimum target altitude in degrees to count as visible (default 0).",
     )
     ap.add_argument(
@@ -132,7 +132,7 @@ def main():
     target = cosmos_target()
 
     # Start "Tomorrow" => now + 7 days (unless user overrides).
-    start = Time(args.start, scale="utc") if args.start else Time.now().utc + 7.0 * u.day
+    start = Time(args.start, scale="utc") if args.start else Time.now().utc #+ 7.0 * u.day
     ndays = int(np.ceil(args.weeks * 7.0))
 
     alt_min = args.alt_min_deg * u.deg
@@ -186,12 +186,14 @@ def main():
         if args.print_nightly:
             # Use date label from the midnight in Chile local time for readability
             mid = observer.midnight(anchor, which="next")
+            date_str = mid.isot.split("T")[0]
             # Print UTC timestamps to avoid timezone dependency
             print(
-                f"Night {i+1:02d} (midnight~{mid.isot} UTC): "
-                f"target-up hours in window={open_hours:6.2f}, "
-                f"CaseA(mfi<0.02)={caseA_hours:6.2f}, "
-                f"CaseB(mfi>=0.02 & moon_down)={caseB_hours:6.2f}"
+                f"{date_str}: "
+                f"Hours up={open_hours:6.2f}, "
+                f"Dark={caseA_hours:6.2f}, "
+                f"Grey & Moon Down={caseB_hours:6.2f}, "
+                f"Bright & Moon Down={caseC_hours:6.2f}"
             )
 
     print("\n=== Summary ===")
